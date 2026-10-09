@@ -134,9 +134,20 @@ public class RadarEkrani : MonoBehaviour
 
     void Sec(HedefUcus h)
     {
+        HedefUcus eskiSecili = Secili;
         Secili = h;
+        SesCal(eskiSecili, h);
         if (kamera != null) kamera.KilitAyarla(h != null ? h.transform : null);
         if (h != null && fuzeKamera != null) fuzeKamera.hedef = h.transform;
+    }
+
+    // Kilit sesleri: yeni hedefe kilit / kilit birakma / chaff'e kayma
+    void SesCal(HedefUcus eski, HedefUcus yeni)
+    {
+        if (eski == yeni) return;
+        if (yeni == null) SesYoneticisi.Ornek.Cal2D("radar_birak", 0.4f);
+        else if (yeni.sahte) SesYoneticisi.Ornek.Cal2D("radar_chaff", 0.45f);
+        else SesYoneticisi.Ornek.Cal2D("radar_kilit", 0.4f);
     }
 
     void SonrakiHedef()

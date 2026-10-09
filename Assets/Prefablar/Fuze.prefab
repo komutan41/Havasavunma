@@ -49,12 +49,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f2026d4003f9604abf0b32eeb3de0c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuzeHareket
-  hiz: 250
+  hiz: 500
   omur: 20
-  donusHizi: 45
+  donusHizi: 90
   ileriBakis: 150
-  minGenislik: 60
-  lazerKoniAcisi: 10
+  minGenislik: 100
+  lazerKoniAcisi: 15
+  kendiGudumlu: 0
+  bilgiYaz: 1
+  kalkisYuksekligi: 4.5
+  kalkisHizi: 12
+  egilmeAcisi: 70
+  iticiAlevi: 1
+  iticiKonumu: 0.3
+  iticiHalkaOrani: 0.045
+  iticiOlcegi: 1
+  iticiNoktalariniGoster: 0
+  baslangicHizi: 20
+  boosterSuresi: 5
+  gudumDonusHizi: 70
+  hizYonuUyumu: 8
+  aldanmaOlasiligi: 0.35
+  boosterAlevOlcegi: 0.7
+  beyazDuman: 1
+  beyazDumanSuresi: 1.5
+  beyazDumanBoyutu: 1.5
+  sesEfekti: 1
+  motorSesi: 0.7
+  motorMenzili: 1200
+  patlamaSesi: 1
   patlamaPrefab: {fileID: 3514822049412533359, guid: e6aa47e32cafa3d49bca3e37db5e50b6, type: 3}
   vurmaMesafesi: 10
   chaffKilitAcisi: 4

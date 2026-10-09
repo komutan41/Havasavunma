@@ -31,10 +31,14 @@ public class FuzeKamera : MonoBehaviour
     float ilkMenzil;
     float ilkSinyal;
     int kopukSayisi;
+    float kopukSure;
+    bool alarmCaldi;
     bool modAcik;
     bool nisanOncesi;
 
     public bool FuzeAktifMi { get { return fuzeler.Count > 0; } }
+    public Vector2 ArtiTitreme { get { return artiTitreme; } }
+    public float GorselTitremeYaricapi { get { return Screen.height * 0.08f * artiGorselTitreme; } }
 
     public void FuzeyeGec(GameObject f)
     {
@@ -64,6 +68,8 @@ public class FuzeKamera : MonoBehaviour
             kamera.nisanModu = nisanOncesi;
             kamera.gorusCarpani = 1f;
             artiTitreme = Vector2.zero;
+            kopukSure = 0f;
+            alarmCaldi = false;
             enKotuKayip = 0f;
             kopukSayisi = 0;
             return;
@@ -110,6 +116,22 @@ public class FuzeKamera : MonoBehaviour
             }
         }
 
+        // Baglanti kopma alarmi (firlatma aninda bir karelik yanlis alarm olmasin diye 0.35 sn beklenir)
+        if (kopukSayisi > 0)
+        {
+            kopukSure += Time.deltaTime;
+            if (kopukSure > 0.35f && !alarmCaldi)
+            {
+                alarmCaldi = true;
+                SesYoneticisi.Ornek.Cal2D("baglanti_kopt", 0.45f);
+            }
+        }
+        else
+        {
+            kopukSure = 0f;
+            alarmCaldi = false;
+        }
+
         float tt = Time.time * titremeHizi;
         artiTitreme = new Vector2(
             (Mathf.PerlinNoise(tt, 0.37f) - 0.5f) * 2f,
@@ -128,15 +150,7 @@ public class FuzeKamera : MonoBehaviour
     {
         if (kamera == null || !kamera.nisanModu) return;
 
-        float cx = Screen.width * 0.5f;
-        float cy = Screen.height * 0.5f;
-        float r = Screen.height * 0.08f * artiGorselTitreme;
-
-        GUIStyle s = new GUIStyle(GUI.skin.label);
-        s.alignment = TextAnchor.MiddleCenter;
-        s.fontSize = Mathf.RoundToInt(Screen.height * 0.08f);
-        s.normal.textColor = Color.red;
-        GUI.Label(new Rect(cx + artiTitreme.x * r - 100f, cy - artiTitreme.y * r - 100f, 200f, 200f), "+", s);
+        // Artı artık Nisangah.cs tarafından çiziliyor
 
         if (modAcik && fuzeler.Count > 0)
         {

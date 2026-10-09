@@ -26,6 +26,7 @@ public class HedefUcus : MonoBehaviour
     public float minIrtifa = 80f;
     public float maxIrtifa = 600f;
     public float yatisCarpani = 0.8f;
+    [Range(1f, 12f)] public float maxG = 6f;        // en fazla kac G ile doner. Hizli ucak yavas doner (donus hizi = G x 9.81 / hiz)
 
     [Header("Chaff gorseli")]
     public int chaffParcaSayisi = 70;
@@ -68,6 +69,7 @@ public class HedefUcus : MonoBehaviour
         yon = yon.normalized;
         ucusYonu = yon;
         renderlar = GetComponentsInChildren<Renderer>();
+        if (!sahte && GetComponent<UcakSesi>() == null) gameObject.AddComponent<UcakSesi>();
         if (!sahte) transform.rotation = Quaternion.LookRotation(yon, Vector3.up);
     }
 
@@ -77,7 +79,6 @@ public class HedefUcus : MonoBehaviour
         float dt = Time.deltaTime;
 
         if (sahte) { SahteGuncelle(dt); return; }
-
         Vector3 onceki = yon;
         YapayZeka(dt);
         IrtifaSinirla();
@@ -255,7 +256,7 @@ public class HedefUcus : MonoBehaviour
             if (transform.position.y > maxIrtifa - 100f) dk = -Mathf.Abs(dk);
 
             Vector3 istenen = (yanal * yanTaraf + Vector3.up * dk).normalized;
-            float donus = Mathf.Lerp(25f, 70f, zeka);
+            float donus = Mathf.Min(Mathf.Lerp(25f, 70f, zeka), GSiniri());   // derece/sn, G ile sinirli
             yon = Vector3.RotateTowards(yon, istenen, donus * Mathf.Deg2Rad * dt, 0f).normalized;
 
             if (mesafe < chaffMesafesi && atilanChaff < chaffSayisi && Time.time >= sonrakiChaff)
@@ -269,8 +270,14 @@ public class HedefUcus : MonoBehaviour
         {
             float hataY = baslangic.y - transform.position.y;
             Vector3 donusYonu = (ucusYonu + Vector3.up * Mathf.Clamp(hataY * 0.002f, -0.3f, 0.3f)).normalized;
-            yon = Vector3.RotateTowards(yon, donusYonu, 20f * Mathf.Deg2Rad * dt, 0f).normalized;
+            yon = Vector3.RotateTowards(yon, donusYonu, Mathf.Min(20f, GSiniri()) * Mathf.Deg2Rad * dt, 0f).normalized;
         }
+    }
+
+    // G sinirina gore bu hizda yapilabilecek en hizli donus (derece/sn)
+    float GSiniri()
+    {
+        return Mathf.Rad2Deg * maxG * 9.81f / Mathf.Max(hiz, 1f);
     }
 
     void ChaffAt()

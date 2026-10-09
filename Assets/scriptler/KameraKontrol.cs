@@ -16,6 +16,14 @@ public class KameraKontrol : MonoBehaviour
     public float nisanGorus = 25f;
     public float nisanHassasiyet = 0.06f;
 
+    [Header("Durbun zoomu")]
+    public float minNisanGorus = 8f;
+    public float maxNisanGorus = 25f;
+    public float tekerZoomAdimi = 2f;
+    public float sagTikZoomCarpani = 0.65f;
+    float nisanGorusAnlik = 25f;
+    bool sagTikZoomAcik;
+
     [Header("Kontrol")]
     public float hassasiyet = 0.15f;
     public float minPitch = -30f;
@@ -49,6 +57,7 @@ public class KameraKontrol : MonoBehaviour
         Yaw = e.y;
         float x = e.x > 180f ? e.x - 360f : e.x;
         Pitch = -x;
+        nisanGorusAnlik = Mathf.Clamp(nisanGorus, minNisanGorus, maxNisanGorus);
     }
 
     public void KilitAyarla(Transform t)
@@ -73,6 +82,33 @@ public class KameraKontrol : MonoBehaviour
     {
         var k = Keyboard.current;
         if (k != null && k.cKey.wasPressedThisFrame) nisanModu = !nisanModu;
+
+        var mouse = Mouse.current;
+        if (mouse != null && nisanModu)
+        {
+            // Sag tikla hizli yakinlastir/normal durbune don.
+            if (mouse.rightButton.wasPressedThisFrame)
+            {
+                sagTikZoomAcik = !sagTikZoomAcik;
+                nisanGorusAnlik = sagTikZoomAcik
+                    ? Mathf.Max(minNisanGorus, nisanGorus * sagTikZoomCarpani)
+                    : Mathf.Clamp(nisanGorus, minNisanGorus, maxNisanGorus);
+            }
+
+            // Tekerlekle kademeli yakinlastir/uzaklastir.
+            float teker = mouse.scroll.ReadValue().y;
+            if (Mathf.Abs(teker) > 0.01f)
+            {
+                nisanGorusAnlik = Mathf.Clamp(nisanGorusAnlik - Mathf.Sign(teker) * tekerZoomAdimi,
+                    minNisanGorus, maxNisanGorus);
+                sagTikZoomAcik = false;
+            }
+        }
+        if (!nisanModu)
+        {
+            sagTikZoomAcik = false;
+            nisanGorusAnlik = Mathf.Clamp(nisanGorus, minNisanGorus, maxNisanGorus);
+        }
 
         var p = Pointer.current;
         if (p != null && p.press.isPressed)
@@ -116,7 +152,7 @@ public class KameraKontrol : MonoBehaviour
         {
             transform.position = hedef.position + nisanOfseti;
             transform.rotation = bakis;
-            if (cam != null) cam.fieldOfView = nisanGorus * gorusCarpani;
+            if (cam != null) cam.fieldOfView = Mathf.Clamp(nisanGorusAnlik * gorusCarpani, minNisanGorus, maxNisanGorus);
         }
         else
         {

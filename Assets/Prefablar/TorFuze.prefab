@@ -1,0 +1,158 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1868116779587372007
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7665018939496079994}
+  - component: {fileID: 3733123318159726020}
+  - component: {fileID: 1700826409518969312}
+  m_Layer: 0
+  m_Name: TorFuze
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7665018939496079994
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1868116779587372007}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7878954125035410192}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &3733123318159726020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1868116779587372007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f2026d4003f9604abf0b32eeb3de0c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FuzeHareket
+  hiz: 800
+  omur: 25
+  donusHizi: 45
+  ileriBakis: 150
+  minGenislik: 60
+  lazerKoniAcisi: 10
+  kendiGudumlu: 1
+  bilgiYaz: 1
+  kalkisYuksekligi: 2.5
+  kalkisHizi: 12
+  egilmeAcisi: 70
+  iticiAlevi: 1
+  iticiKonumu: 0.3
+  iticiHalkaOrani: 0.045
+  iticiOlcegi: 1
+  iticiNoktalariniGoster: 0
+  baslangicHizi: 28
+  boosterSuresi: 5
+  gudumDonusHizi: 70
+  hizYonuUyumu: 8
+  aldanmaOlasiligi: 0.35
+  boosterAlevOlcegi: 0.7
+  beyazDuman: 1
+  beyazDumanSuresi: 1.5
+  beyazDumanBoyutu: 1.5
+  sesEfekti: 1
+  motorSesi: 0.7
+  motorMenzili: 1200
+  patlamaSesi: 1
+  patlamaPrefab: {fileID: 3514822049412533359, guid: e6aa47e32cafa3d49bca3e37db5e50b6, type: 3}
+  vurmaMesafesi: 10
+  chaffKilitAcisi: 4
+  kumandaVar: 0
+  losKaynak: {x: 0, y: 0, z: 0}
+  losYon: {x: 0, y: 0, z: 0}
+--- !u!114 &1700826409518969312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1868116779587372007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0e530eec0a0d246bad791297cfb71d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DumanBirakici
+  temizlemeSuresi: 8
+--- !u!1001 &7700331232649344251
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7665018939496079994}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+      propertyPath: m_Name
+      value: 9m330_2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+--- !u!4 &7878954125035410192 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1ed3aa81b1e630f438208ac0eee7b873, type: 3}
+  m_PrefabInstance: {fileID: 7700331232649344251}
+  m_PrefabAsset: {fileID: 0}
