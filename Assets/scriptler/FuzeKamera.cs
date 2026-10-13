@@ -35,10 +35,48 @@ public class FuzeKamera : MonoBehaviour
     bool alarmCaldi;
     bool modAcik;
     bool nisanOncesi;
+    bool donuk;                    // baska araca gecildi: lazer kumandasi SON bakis yonunde sabit
+    Vector3 donukKaynak;
+    Quaternion donukBakis;
 
     public bool FuzeAktifMi { get { return fuzeler.Count > 0; } }
+    public bool KumandaAktif { get { return fuzeler.Count > 0 && !donuk; } }   // oyuncu su an fuzeyi KENDI kameraysa yonlendiriyor
     public Vector2 ArtiTitreme { get { return artiTitreme; } }
     public float GorselTitremeYaricapi { get { return Screen.height * 0.08f * artiGorselTitreme; } }
+
+    // AracYoneticisi cagirir. Baska araca gecilince (dondur = true) havadaki fuzeler Pantsir'in SON bakis yonunde
+    // (ve Pantsir'in konumundan) lazer huzmesini izlemeye devam eder; yeni aracin kamerasina uymaz.
+    // Pantsir'e donunce (dondur = false) kumanda tekrar oyuncuya gecer.
+    public void KumandaDondur(bool dondur)
+    {
+        if (dondur == donuk) return;
+
+        if (dondur)
+        {
+            if (fuzeler.Count == 0) return;
+            donuk = true;
+            donukKaynak = losKaynagi != null ? losKaynagi.position : transform.position;
+            donukBakis = Quaternion.Euler(-kamera.Pitch, kamera.Yaw, 0f);
+
+            if (modAcik)   // fuzeyle acilan durbun/zoom, yeni arac icin eski haline doner
+            {
+                modAcik = false;
+                kamera.nisanModu = nisanOncesi;
+                kamera.gorusCarpani = 1f;
+                artiTitreme = Vector2.zero;
+            }
+        }
+        else
+        {
+            donuk = false;
+            if (fuzeler.Count > 0 && !modAcik)
+            {
+                modAcik = true;
+                nisanOncesi = kamera.nisanModu;
+                kamera.nisanModu = true;
+            }
+        }
+    }
 
     public void FuzeyeGec(GameObject f)
     {
@@ -58,15 +96,19 @@ public class FuzeKamera : MonoBehaviour
 
     void Update()
     {
-        if (!modAcik) return;
+        if (!modAcik && !donuk) return;
 
         fuzeler.RemoveAll(x => x.obje == null);
 
         if (fuzeler.Count == 0)
         {
-            modAcik = false;
-            kamera.nisanModu = nisanOncesi;
-            kamera.gorusCarpani = 1f;
+            donuk = false;
+            if (modAcik)
+            {
+                modAcik = false;
+                kamera.nisanModu = nisanOncesi;
+                kamera.gorusCarpani = 1f;
+            }
             artiTitreme = Vector2.zero;
             kopukSure = 0f;
             alarmCaldi = false;
@@ -75,8 +117,9 @@ public class FuzeKamera : MonoBehaviour
             return;
         }
 
-        Vector3 kaynak = losKaynagi != null ? losKaynagi.position : transform.position;
-        Quaternion bakis = Quaternion.Euler(-kamera.Pitch, kamera.Yaw, 0f);
+        // Kumanda sabitlendiyse (baska arac secili) huzme Pantsir'in son konum ve yonunde kalir
+        Vector3 kaynak = donuk ? donukKaynak : (losKaynagi != null ? losKaynagi.position : transform.position);
+        Quaternion bakis = donuk ? donukBakis : Quaternion.Euler(-kamera.Pitch, kamera.Yaw, 0f);
 
         enKotuKayip = 0f;
         kopukSayisi = 0;
@@ -143,7 +186,7 @@ public class FuzeKamera : MonoBehaviour
             float yakin = 1f - Mathf.Clamp01(enYakinHedef / zoomMenzili);
             zoom = Mathf.Lerp(1f, zoomOrani, yakin);
         }
-        kamera.gorusCarpani = zoom;
+        if (!donuk) kamera.gorusCarpani = zoom;
     }
 
     void OnGUI()

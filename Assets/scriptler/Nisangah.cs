@@ -49,7 +49,7 @@ public class Nisangah : MonoBehaviour
         Vector2 merkez = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
 
         // Fuze kumandasi: tek kirmizi arti, sinyal zayifladikca titrer
-        if (fuzeKamera != null && fuzeKamera.FuzeAktifMi)
+        if (fuzeKamera != null && fuzeKamera.KumandaAktif)
         {
             float r = fuzeKamera.GorselTitremeYaricapi;
             Vector2 t = fuzeKamera.ArtiTitreme;

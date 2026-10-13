@@ -32,6 +32,16 @@ public class MakineliTufek : MonoBehaviour
     public float maksOlcek = 12f;
     public int gorunenAraligi = 1;          // 1 = her mermi gorunur, 2 = her ikinci mermi gorunur
 
+    [Header("Mermi yonu")]
+    public bool mermiYonuOtomatik = true;   // ISARETLI: model nasil yapilmis olursa olsun burnu ileri bakar ("Model Donusu" yok sayilir)
+    public bool mermiBurunTers = false;     // mermi hala GERI bakiyorsa BUNU isaretle
+
+    [Header("Izli mermi (arkasinda iz birakir)")]
+    public int izliMermiAraligi = 3;        // her N. mermi izli olur: 2 = her ikinci, 3 = her ucuncu, 0 = iz yok
+    public float izSuresi = 0.12f;          // iz ne kadar uzun kalir (sn). 900 m/sn ile 0.12 sn = yaklasik 100 m
+    public float izKalinligi = 0.25f;       // metre (uzaklastikca otomatik buyur)
+    public Color izRengi = new Color(1f, 0.75f, 0.25f, 1f);
+
     [Header("Efektler")]
     public bool namluEfekti = true;
     public bool sesEfekti = true;
@@ -49,6 +59,7 @@ public class MakineliTufek : MonoBehaviour
     {
         public GameObject kok;
         public TrailRenderer[] izler;
+        public TrailRenderer iz;               // izli mermilerde acilan iz
     }
 
     class Mermi
@@ -63,6 +74,7 @@ public class MakineliTufek : MonoBehaviour
     Stack<Gorsel> bosGorseller = new Stack<Gorsel>();
     Transform kap;
     Material yedekMat;
+    Material izMat;
 
     int sonNamlu;
     int atisSayaci;
@@ -145,6 +157,11 @@ public class MakineliTufek : MonoBehaviour
             g.kok.transform.localScale = Vector3.one * mermiOlcegi;
             g.kok.SetActive(true);
             for (int i = 0; i < g.izler.Length; i++) g.izler[i].Clear();
+            if (g.iz != null)
+            {
+                g.iz.emitting = izliMermiAraligi > 0 && atisSayaci % izliMermiAraligi == 0;   // her N. mermi izli
+                g.iz.widthMultiplier = izKalinligi;
+            }
             m.gorsel = g;
         }
 
@@ -193,7 +210,7 @@ public class MakineliTufek : MonoBehaviour
         {
             GameObject model = Instantiate(mermiPrefab, kok.transform);
             model.transform.localPosition = Vector3.zero;
-            model.transform.localRotation = Quaternion.Euler(modelDonusu);
+            model.transform.localRotation = mermiYonuOtomatik ? Quaternion.identity : Quaternion.Euler(modelDonusu);
 
             foreach (Collider c in model.GetComponentsInChildren<Collider>(true)) Destroy(c);
             foreach (Rigidbody rb in model.GetComponentsInChildren<Rigidbody>(true)) Destroy(rb);
@@ -202,6 +219,8 @@ public class MakineliTufek : MonoBehaviour
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 r.receiveShadows = false;
             }
+
+            if (mermiYonuOtomatik) MermiYonuAyarla(model.transform, kok.transform);
         }
         else
         {
@@ -216,12 +235,109 @@ public class MakineliTufek : MonoBehaviour
             r.receiveShadows = false;
         }
 
+        TrailRenderer izRend = IzYap(kok);
         kok.SetActive(false);
 
         Gorsel g = new Gorsel();
         g.kok = kok;
+        g.iz = izRend;
         g.izler = kok.GetComponentsInChildren<TrailRenderer>(true);
         return g;
+    }
+
+    // Izli mermi icin iz bileseni (her mermi gorseline eklenir, sadece izli olanlarda acilir)
+    TrailRenderer IzYap(GameObject kok)
+    {
+        if (izliMermiAraligi <= 0) return null;
+
+        TrailRenderer t = kok.AddComponent<TrailRenderer>();
+        t.time = izSuresi;
+        t.widthCurve = AnimationCurve.Linear(0f, 1f, 1f, 0f);
+        t.widthMultiplier = izKalinligi;
+        t.minVertexDistance = 1f;
+        t.alignment = LineAlignment.View;
+        t.numCapVertices = 2;
+        t.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        t.receiveShadows = false;
+
+        Gradient gr = new Gradient();
+        gr.SetKeys(
+            new GradientColorKey[] {
+                new GradientColorKey(new Color(1f, 0.95f, 0.75f), 0f),
+                new GradientColorKey(izRengi, 0.35f),
+                new GradientColorKey(izRengi, 1f) },
+            new GradientAlphaKey[] {
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(0.6f, 0.4f),
+                new GradientAlphaKey(0f, 1f) });
+        t.colorGradient = gr;
+
+        t.sharedMaterial = IzMateryali();
+        t.emitting = false;
+        return t;
+    }
+
+    Material IzMateryali()
+    {
+        if (izMat != null) return izMat;
+        Shader sh = Shader.Find("Sprites/Default");
+        if (sh == null) sh = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        if (sh == null) sh = Shader.Find("Particles/Standard Unlit");
+        if (sh == null) sh = Shader.Find("Standard");
+        izMat = new Material(sh);
+        return izMat;
+    }
+
+    // Mermi modelinin BURNUNU ileri (+Z) cevirir. Burun = modelin dar (sivri) ucu.
+    // Modelin Read/Write ozelligi kapaliysa dar uc olculemez: uzun eksen ileri yapilir, ters ise "Mermi Burun Ters" ile cevrilir.
+    void MermiYonuAyarla(Transform model, Transform kok)
+    {
+        MeshFilter en = null;
+        int enV = 0;
+        MeshFilter[] mfs = model.GetComponentsInChildren<MeshFilter>(true);
+        for (int i = 0; i < mfs.Length; i++)
+        {
+            if (mfs[i].sharedMesh != null && mfs[i].sharedMesh.vertexCount > enV)
+            {
+                en = mfs[i];
+                enV = en.sharedMesh.vertexCount;
+            }
+        }
+        if (en == null) return;
+
+        Mesh ms = en.sharedMesh;
+        Bounds b = ms.bounds;
+        Vector3 boy = b.size;
+        int ax = (boy.x >= boy.y && boy.x >= boy.z) ? 0 : (boy.y >= boy.z ? 1 : 2);   // en uzun eksen
+
+        Vector3 burunYerel = Vector3.zero;
+        if (ms.isReadable)
+        {
+            Vector3[] v = ms.vertices;
+            float mn = b.min[ax];
+            float mx = b.max[ax];
+            float uz = Mathf.Max(mx - mn, 0.0001f);
+            int o1 = (ax + 1) % 3;
+            int o2 = (ax + 2) % 3;
+            float rAlt = 0f, rUst = 0f;
+            for (int i = 0; i < v.Length; i++)
+            {
+                float t = v[i][ax];
+                float r = Mathf.Max(Mathf.Abs(v[i][o1] - b.center[o1]), Mathf.Abs(v[i][o2] - b.center[o2]));
+                if (t < mn + 0.12f * uz) rAlt = Mathf.Max(rAlt, r);
+                else if (t > mx - 0.12f * uz) rUst = Mathf.Max(rUst, r);
+            }
+            burunYerel[ax] = rAlt <= rUst ? -1f : 1f;      // ince uc burundur
+        }
+        else
+        {
+            burunYerel[ax] = 1f;
+            Debug.LogWarning("MakineliTufek: Mermi modelinin Read/Write ozelligi kapali, burun ucu otomatik bulunamadi. Mermi geri bakiyorsa 'Mermi Burun Ters' kutusunu isaretle (ya da FBX'te Read/Write'i ac).");
+        }
+
+        Vector3 burunDunya = en.transform.TransformDirection(burunYerel).normalized;
+        model.rotation = Quaternion.FromToRotation(burunDunya, kok.forward) * model.rotation;
+        if (mermiBurunTers) model.rotation = Quaternion.AngleAxis(180f, kok.up) * model.rotation;
     }
 
     Material YedekMateryal()
@@ -280,6 +396,7 @@ public class MakineliTufek : MonoBehaviour
                 float d = kam != null ? Vector3.Distance(m.poz, kamPoz) : 0f;
                 float k = Mathf.Clamp(1f + d * uzaktaBuyume, 1f, maksOlcek);
                 tr.localScale = Vector3.one * (mermiOlcegi * k);
+                if (m.gorsel.iz != null && m.gorsel.iz.emitting) m.gorsel.iz.widthMultiplier = izKalinligi * k;
             }
         }
     }

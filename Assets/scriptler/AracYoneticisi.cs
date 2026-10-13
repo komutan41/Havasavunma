@@ -66,6 +66,11 @@ public class AracYoneticisi : MonoBehaviour
 
     public void Sec(int n)
     {
+        // Havadaki Pantsir fuzesinin kumandasi: baska araca gecilince Pantsir'in SON bakis yonunde sabitlenir,
+        // Pantsir'e donulunce oyuncuya geri verilir. (Kamera henuz eski arac icin ayarli iken cagrilmali.)
+        Slot gidilen = (araclar != null && n >= 0 && n < araclar.Length) ? araclar[n] : null;
+        if (fuzeKamera != null) fuzeKamera.KumandaDondur(!(gidilen != null && gidilen.pantsirFuze != null));
+
         Aktif = n;
 
         for (int i = 0; i < araclar.Length; i++)
@@ -94,7 +99,7 @@ public class AracYoneticisi : MonoBehaviour
             kamera.nisanOfseti = yeni.nisanOfseti;
         }
         if (radar != null) radar.arac = yeni.taretGovdesi;
-        if (fuzeKamera != null) fuzeKamera.losKaynagi = yeni.taretGovdesi;
+        if (fuzeKamera != null && yeni.pantsirFuze != null) fuzeKamera.losKaynagi = yeni.taretGovdesi;   // sadece Pantsir lazer kaynagi olur
         if (nisangah != null) nisangah.taret = yeni.taret;
     }
 

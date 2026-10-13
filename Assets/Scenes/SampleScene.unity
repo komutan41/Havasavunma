@@ -993,6 +993,7 @@ MonoBehaviour:
   rampaMin: 0
   rampaMax: 75
   dikeyOfset: 0
+  dikeyStabilize: 1
 --- !u!1 &2004019271
 GameObject:
   m_ObjectHideFlags: 0
@@ -3913,6 +3914,12 @@ MonoBehaviour:
   uzaktaBuyume: 0.01
   maksOlcek: 5
   gorunenAraligi: 1
+  mermiYonuOtomatik: 1
+  mermiBurunTers: 0
+  izliMermiAraligi: 3
+  izSuresi: 1.5
+  izKalinligi: 0.25
+  izRengi: {r: 1, g: 0.9478415, b: 0.8443396, a: 1}
   namluEfekti: 1
   sesEfekti: 1
   dumanHerKacAtista: 3
@@ -6757,6 +6764,7 @@ MonoBehaviour:
   rampaMin: 0
   rampaMax: 75
   dikeyOfset: 0
+  dikeyStabilize: 1
 --- !u!114 &8973046475641993747
 MonoBehaviour:
   m_ObjectHideFlags: 0

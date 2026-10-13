@@ -42,6 +42,7 @@ public class FuzeHareket : MonoBehaviour
     public float baslangicHizi = 20f;        // m/sn: booster yanarken ilk hiz (20 = 72 km/h, 28 = 100 km/h)
     public float boosterSuresi = 5f;         // sn: baslangicHizi'ndan en yuksek hiz'a (yukaridaki 'Hiz') cikma suresi
     public float gudumDonusHizi = 70f;       // derece/sn: ucus sirasinda donebilme siniri
+    public float hedefKaybiPatlamaSuresi = 4f;   // hedef dusunce/yeniden dogunca fuze kilidi KAYBEDER, duz gider ve bu kadar sn sonra kendini imha eder
     public float hizYonuUyumu = 8f;          // booster'da fuzenin hareket yonu burnuna ne kadar hizli uyar (buyuk = keskin donus)
     [Range(0f, 1f)] public float aldanmaOlasiligi = 0.35f;   // ucak chaff atinca fuzenin chaff'e kayma sansi
     public float boosterAlevOlcegi = 0.7f;   // booster atesleme parlamasi/dumani boyutu
@@ -77,6 +78,8 @@ public class FuzeHareket : MonoBehaviour
     Faz faz = Faz.Kalkis;
     float fazBas;
     HedefUcus gudumHedef;
+    int gudumKimlik;          // fuze atildiginda hedefin kimligi: ucak olup yeniden dogarsa FARKLI ucak sayilir
+    float hedefYokSure;
     float hizAnlik;
     Vector3 kalkisBas;
     Vector3 kalkisYonu;
@@ -140,7 +143,7 @@ public class FuzeHareket : MonoBehaviour
     // Hedefe dogru egilme yonu (yatay bilesen) ve egilme acisi
     void EgilmeHesapla(out Vector3 yatay, out float aci)
     {
-        bool hedefVar = gudumHedef != null && !gudumHedef.olu;
+        bool hedefVar = HedefGecerli();
         Vector3 pos = transform.position;
         Vector3 hedefNokta = hedefVar ? (egilmeAnlikKonuma ? gudumHedef.transform.position : Kestirim(pos)) : pos + kalkisYonu;
         Vector3 d = hedefNokta - pos;
@@ -248,10 +251,17 @@ public class FuzeHareket : MonoBehaviour
         Gizmos.DrawRay(transform.position, sonYatay * 3f);
     }
 
+    // Hedef hala AYNI ucak mi? (olduyse ya da olup yeniden dogduysa gecersiz)
+    bool HedefGecerli()
+    {
+        return gudumHedef != null && !gudumHedef.olu && gudumHedef.Kimlik == gudumKimlik;
+    }
+
     // Tor atesleyicisi cagirir: fuzenin gidecegi ucak
     public void HedefAta(HedefUcus h)
     {
         gudumHedef = h;
+        gudumKimlik = h != null ? h.Kimlik : 0;
     }
 
     bool LazerUstunde(HedefUcus h)
@@ -265,7 +275,11 @@ public class FuzeHareket : MonoBehaviour
     void ChaffAldat(HedefUcus ucak, HedefUcus chaff)
     {
         if (bitti || gudumHedef != ucak) return;
-        if (Random.value < aldanmaOlasiligi) gudumHedef = chaff;
+        if (Random.value < aldanmaOlasiligi)
+        {
+            gudumHedef = chaff;
+            gudumKimlik = chaff.Kimlik;
+        }
     }
 
     bool Vurulabilir(HedefUcus h)
@@ -353,7 +367,7 @@ public class FuzeHareket : MonoBehaviour
     // ---------------- Kendi gudumlu (Tor M1) ----------------
     void KendiGudum(float dt)
     {
-        bool hedefVar = gudumHedef != null && !gudumHedef.olu;
+        bool hedefVar = HedefGecerli();
         BaglantiVar = hedefVar;
 
         if (faz == Faz.Kalkis)
@@ -389,6 +403,14 @@ public class FuzeHareket : MonoBehaviour
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, istenen, gudumDonusHizi * dt);
             }
         }
+
+        if (!hedefVar)
+        {
+            // Hedef dustu ya da yeniden dogdu: eski kilit biter, fuze yeni ucagi KOVALAMAZ; duz gider ve kendini imha eder
+            hedefYokSure += dt;
+            if (hedefYokSure >= hedefKaybiPatlamaSuresi) { Patla(null); return; }
+        }
+        else hedefYokSure = 0f;
 
         // Hareket yonu, atalet yuzunden burnu biraz gec takip eder (dikten egime yumusak gecis)
         hizYonu = Vector3.Slerp(hizYonu, transform.forward, 1f - Mathf.Exp(-hizYonuUyumu * dt)).normalized;

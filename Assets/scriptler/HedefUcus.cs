@@ -37,6 +37,7 @@ public class HedefUcus : MonoBehaviour
     [HideInInspector] public float sahteOmur = 8f;
 
     public bool olu { get; private set; }
+    public int Kimlik { get; private set; }   // her oldugunde ve her yeniden dogdugunda artar: fuzeler "ayni ucak mi?" diye buna bakar
 
     Vector3 baslangic;
     Vector3 ucusYonu;
@@ -320,6 +321,7 @@ public class HedefUcus : MonoBehaviour
         }
 
         vurus++;
+        Kimlik++;
         foreach (var r in renderlar) r.enabled = false;
         Invoke("Yeniden", yenidenDogmaSuresi);
     }
@@ -329,5 +331,6 @@ public class HedefUcus : MonoBehaviour
         Sifirla();
         foreach (var r in renderlar) r.enabled = true;
         olu = false;
+        Kimlik++;
     }
 }

@@ -39,8 +39,10 @@ public class TaretKontrol : MonoBehaviour
     public float rampaMin = 0f;
     public float rampaMax = 75f;
     public float dikeyOfset = 0f;
+    public bool dikeyStabilize = true;            // ISARETLI: arac yatinca/egilince (suspansiyon, tepe) namlu yine tam kameranin baktigi yuksekligi gosterir
 
     Transform dondur;         // gercekte donen parca
+    Vector3 mafsalEkseni = Vector3.up;   // donen parcanin EBEVEYNINE gore "dikey" eksen (arac yatsa da taret bu eksen etrafinda doner)
     Transform merkezBaz;      // otomatik merkezin bagli oldugu obje (arac govdesi)
     Vector3 merkezYerel;      // otomatik merkez: merkezBaz'a gore yerel konum
     bool merkezHazir;
@@ -56,6 +58,8 @@ public class TaretKontrol : MonoBehaviour
         if (arac == null) arac = GetComponentInParent<AracHareket>();
         if (rampa != null) rampaBaslangic = rampa.localRotation;
         dondur = donecekObje != null ? donecekObje : transform;
+        // Tareti dunya Y ekseni yerine ARACIN KENDI dikey ekseni etrafinda cevirmek icin (suspansiyonla yatan govdede taret yamulmasin)
+        mafsalEkseni = dondur.parent != null ? dondur.parent.InverseTransformDirection(Vector3.up).normalized : Vector3.up;
 
         if (donecekObje != null && donmeNoktasi == null && merkezOtomatik) MerkezHesapla();
 
@@ -96,8 +100,13 @@ public class TaretKontrol : MonoBehaviour
     void Don(float aci)
     {
         if (Mathf.Abs(aci) < 0.0001f) return;
-        if (donmeNoktasi != null || merkezHazir) dondur.RotateAround(DonmeMerkezi(), Vector3.up, aci);
-        else dondur.Rotate(0f, aci, 0f, Space.World);
+
+        // Eksen: ebeveynin (govdenin) o anki dikey ekseni. Dunya Y ekseni kullanilirsa govde hafif yattiginda her
+        // donuste taret kucuk bir egim kazanir ve zamanla yamulur; mafsal ekseni bunu onler.
+        Vector3 eksen = dondur.parent != null ? dondur.parent.TransformDirection(mafsalEkseni) : Vector3.up;
+
+        if (donmeNoktasi != null || merkezHazir) dondur.RotateAround(DonmeMerkezi(), eksen, aci);
+        else dondur.Rotate(eksen, aci, Space.World);
     }
 
     void OnDrawGizmosSelected()
@@ -127,6 +136,8 @@ public class TaretKontrol : MonoBehaviour
         }
         else
         {
+            // Namlulu taret: mermi/fuzenin GERCEKTE gidecegi yon = namlunun kendi yonu (egim dahil)
+            if (referans != null && referans != transform && referans != rampa) return referans.forward.normalized;
             Vector3 f = referans != null ? referans.forward : transform.forward;
             yaw = Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg;
         }
@@ -204,6 +215,15 @@ public class TaretKontrol : MonoBehaviour
         if (rampa != null)
         {
             float hedefR = Mathf.Clamp(kamera.Pitch + dikeyOfset, rampaMin, rampaMax);
+
+            // Stabilizasyon: namlunun GERCEK dunya egimi olculur, arac yatsa da hedef yukseklige duzeltilir
+            if (dikeyStabilize && !aracModu && referans != null && referans != transform && referans.IsChildOf(rampa))
+            {
+                float mevcutPitch = Mathf.Asin(Mathf.Clamp(referans.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+                float hata = hedefR - mevcutPitch;
+                hedefR = Mathf.Clamp(rampaAci + hata, rampaMin - 8f, rampaMax + 8f);
+            }
+
             rampaAci = Mathf.MoveTowards(rampaAci, hedefR, rampaHizi * dt);
             float uygula = rampaTersCevir ? -rampaAci : rampaAci;
             rampa.localRotation = rampaBaslangic * Quaternion.AngleAxis(uygula, rampaEkseni);
